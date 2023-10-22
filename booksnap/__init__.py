@@ -1,1 +1,1 @@
-from .core import Library, IBook
+from .core import LibraryMinistry, Library, IBook
