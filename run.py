@@ -4,7 +4,9 @@ from pprint import pprint
 import booksnap
 
 # THIS BEHAVIOR SHOULD BE
-library = booksnap.Library("._LIBRARY")
+library = booksnap.Library(".LIBRARY")
+# library2 = booksnap.Library("._LIBRARY")
+# print(library == library2)
 
 # books = library.get_books()
 # pprint(books)
