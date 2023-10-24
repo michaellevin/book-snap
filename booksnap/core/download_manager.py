@@ -8,8 +8,10 @@ from .events import EventSystem
 
 
 class DownloadManager:
-    def __init__(self, download_dir: str, event_dispatcher: EventSystem):
-        self.download_dir = Path(download_dir)
+    def __init__(self, download_dir: Path | str, event_dispatcher: EventSystem):
+        self.download_dir = (
+            download_dir if isinstance(download_dir, Path) else Path(download_dir)
+        )
         self.executor = ThreadPoolExecutor(max_workers=3)  # 3 threads for downloading
         self.futures = []
 
