@@ -1,2 +1,3 @@
-from .library import LibraryMinistry, Library
+from .library import Library
+from .ministry import LibraryMinistry
 from .book import IBook
