@@ -21,7 +21,7 @@ def system_call(command):
     """
     try:
         # The output is returned as bytes, so we decode it to UTF-8 (or the appropriate encoding).
-        output = check_output(command, stderr=STDOUT, shell=True).decode(
+        output = check_output(command, stderr=STDOUT).decode(
             "utf-8"
         )  # Adding shell=True might be necessary depending on the command being executed.
     except CalledProcessError as e:
@@ -34,7 +34,7 @@ def system_call(command):
     return output  # Only reached if no exception was raised.
 
 
-def generate_id_from_url(url: str) -> int:
+def hash_url(url: str) -> int:
     """
     Generate a unique integer ID from the library URL.
     This example uses a hash function to ensure the uniqueness of the ID,
