@@ -58,7 +58,7 @@ def create_pdf(dest_folder: str, title: str) -> str:
     """
     # Convert paths to Path objects, which are more versatile
     dest_folder_path = Path(dest_folder)
-    pdf_path = dest_folder_path / f"{title}.pdf"
+    pdf_path = dest_folder_path.parent / f"{title}.pdf"
 
     # Find all JPEG images in the destination folder
     imgs = glob.glob(str(dest_folder_path / "*.jpeg"))
@@ -77,5 +77,7 @@ def create_pdf(dest_folder: str, title: str) -> str:
             os.remove(img_path)
         except OSError as e:
             print(f"Error deleting file {img_path}: {e}")
+
+    dest_folder_path.rmdir()  # Remove the empty folder
 
     return pdf_path
