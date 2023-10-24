@@ -7,7 +7,8 @@ class OnlineLibrary(Enum):
     # Add other libraries here
 
 
-class Status(Enum):
+class BookState(Enum):
+    REGISTERED = auto()
     DOWNLOADING = auto()
-    DOWNLOADED = auto()
-    FAILED = auto()
+    TERMINATED = auto()
+    READY = auto()
