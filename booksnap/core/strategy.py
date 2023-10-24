@@ -11,7 +11,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from .enums import OnlineLibrary, BookState
-from .utils import system_call
+from .utils import system_call, create_pdf
 from .events import EventSystem
 from .book import IBook
 
@@ -80,6 +80,7 @@ class PrLibDownloadStrategy(DownloadStrategy):
                 .split(">")[1]
                 .split("<")[0]
             )
+        # emit a book registration event to Library
         event_dispatcher.emit(
             "register_book",
             book := IBook(
@@ -113,16 +114,15 @@ class PrLibDownloadStrategy(DownloadStrategy):
         book_dest_folder.mkdir(parents=True, exist_ok=True)
 
         # * Update status
-        book.set_state(BookState.DOWNLOADING.value)
-        book.set_progress_page(-1)
-        event_dispatcher.emit("register_book", book)
-
+        event_dispatcher.emit(
+            "register_book", book, state=BookState.DOWNLOADING, progress_page=-1
+        )
         # * Download fetched images
         ids = book.get_tech().ids
         all_images = book.get_tech().all_images
         for i, im in enumerate(all_images):
             im_address = PrLibDownloadStrategy.SCAN_URL.format(*ids, im)
-            logger.info(f"page:{i}/{book.num_pages}  |  url: {im_address}")
+            logger.info(f"page:{i+1}/{book.num_pages}  |  url: {im_address}")
             image_path = book_dest_folder / f"{str(i).zfill(4)}.jpeg"
             if image_path.exists():
                 image_path.unlink()  # Remove if exists
@@ -132,15 +132,17 @@ class PrLibDownloadStrategy(DownloadStrategy):
                     f"{PrLibDownloadStrategy.DEZOOMIFY_EXECUTABLE} -l {im_address} {str(image_path)}"
                 )
                 book.set_progress_page(i)
-                event_dispatcher.emit("register_book", book)
+                event_dispatcher.emit("register_book", book, progress_page=i + 1)
                 if timeout:
                     sleep(timeout)  # Pause for 1 second
             except RuntimeError as err:
                 logger.critical(err)
-                book.set_state(BookState.TERMINATED.value)
-                event_dispatcher.emit("register_book", book)
+                event_dispatcher.emit("register_book", book, state=BookState.TERMINATED)
 
-        event_dispatcher.emit("book_is_ready", book)
+        event_dispatcher.emit("book_is_ready", book, state=BookState.DOWNLOAD_FINISHED)
+        # * Convert images to PDF
+        create_pdf(book_dest_folder, book.title)
+        event_dispatcher.emit("book_is_ready", book, state=BookState.PDF_READY)
         return book
 
     @staticmethod
