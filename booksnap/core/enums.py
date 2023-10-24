@@ -11,4 +11,5 @@ class BookState(Enum):
     REGISTERED = auto()
     DOWNLOADING = auto()
     TERMINATED = auto()
-    READY = auto()
+    DOWNLOAD_FINISHED = auto()
+    PDF_READY = auto()
