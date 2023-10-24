@@ -8,13 +8,12 @@ import tempfile
 import logging
 import traceback
 
-from ._singleton import SingletonMeta, SingletonArgMeta
+from ._singleton import SingletonArgMeta
 from .book import IBook
-from .strategy import DownloadStrategyFactory
-from .utils import hash_url
-from .events import EventSystem
-from .enums import BookState, OnlineLibrary
 from .download_manager import DownloadManager
+from .events import BookEventSystem
+from .utils import hash_url
+from .enums import BookState
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -23,50 +22,24 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-class LibraryMinistry(metaclass=SingletonMeta):
-    def __init__(self):
-        self._libraries = {}
-        self.event_system = EventSystem()
-
-    def build_library(self, books_dir: str):
-        if self._libraries.get(books_dir) is None:
-            self._libraries[books_dir] = Library(books_dir)
-            logger.info(
-                f"New Library is built! Please visit us: {books_dir}, 24/7 open"
-            )
-        return self._libraries[books_dir]
-
-    def get_library(self, books_dir: str):
-        library = self._libraries.get(books_dir)
-        if library is None:
-            raise ValueError(
-                f"No library exists at {books_dir}"
-            )  # or handle this some other appropriate way
-        return library
-
-    def get_all_libraries(self):
-        return self._libraries
-
-
 class Library(metaclass=SingletonArgMeta):
     def __init__(self, books_dir: Optional[str]):
-        self.root = (
+        self.root = Path(
             books_dir
             if os.path.exists(books_dir)
             else os.path.join(tempfile.TemporaryDirectory(), "BooksLibrary")
         )
-        if not os.path.exists(self.root):
-            os.makedirs(self.root)
-        # print(self.root)
+        if not self.root.exists():
+            self.root.mkdir(parents=True)
 
-        self._metadata_file = os.path.join(self.root, ".metadata.json")
-        if not os.path.exists(self._metadata_file):
+        self._metadata_file = self.root / ".metadata.json"
+        if not self._metadata_file.exists():
             with open(self._metadata_file, "w") as f:
                 json.dump({}, f)
 
         self._books = {}
 
-        self._event_dispatcher = EventSystem()
+        self._event_dispatcher = BookEventSystem()
         self._event_dispatcher.register_listener(
             "register_book", partial(self.store_book, final=False)
         )
@@ -99,11 +72,14 @@ class Library(metaclass=SingletonArgMeta):
         book_id = str(hash_url(book_url))
         book = self._ask_librarian(book_id)
         if book:
-            if book.state == BookState.READY.value:
+            logger.info(
+                f"Book {book_id} is in the library, state: {BookState(book.state)}"
+            )
+            if book.state == BookState.PDF_READY.value:
                 # Book is available and ready.
-                return book
+                return self.get_book_path(book)
             elif book.state == BookState.TERMINATED.value:
-                # Resume book's download, it was downloaded before.
+                # Resume book's download, it was downloaded before. (TODO)
                 self._download_manager.add(book)
             elif book.state == BookState.DOWNLOADING.value:
                 logging.warning("Book is downloading, please wait")
@@ -114,7 +90,7 @@ class Library(metaclass=SingletonArgMeta):
                 # Wait for the download task to complete and return the book.
                 book = future.result()
                 book.pprint()
-                return book
+                return self.get_book_path(book)
             except Exception as e:
                 # Handle exceptions raised by the task (if any)
                 logging.critical("An error occurred during download:")
@@ -145,3 +121,9 @@ class Library(metaclass=SingletonArgMeta):
         # if self._books is None:
         #     self._books = self.load_metadata()
         # return self._books
+
+    def get_book_path(self, book: IBook) -> Path:
+        """Get the path to the book folder."""
+        if book.state == BookState.PDF_READY.value:
+            return self.root / (book.title + ".pdf")
+        raise ValueError("Book is not ready yet")
