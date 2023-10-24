@@ -72,6 +72,7 @@ class IBook:
             book_dict["_tech"] = vars(self._tech)
 
         # Remove items where value is None
+        # (TODO): check progress_page
         return {
             k: v
             for k, v in book_dict.items()
