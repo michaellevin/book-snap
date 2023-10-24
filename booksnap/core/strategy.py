@@ -3,27 +3,34 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from urllib.request import urlopen
 import json
+from time import sleep
 import platform
+from typing import Optional
 import logging
 
 logger = logging.getLogger(__name__)
 
-from .enums import OnlineLibrary, Status
+from .enums import OnlineLibrary, BookState
 from .utils import system_call
 from .events import EventSystem
+from .book import IBook
 
 
 class DownloadStrategy(ABC):
-    def __init__(self):
-        self.event_system = EventSystem()
-
+    @staticmethod
     @abstractmethod
-    def _fetch_data(self, book_url: str) -> dict:
+    def fetch_book_data(book_url: str, event_dispatcher: EventSystem) -> dict:
         """Get the data of the book from the given URL."""
         pass
 
+    @staticmethod
     @abstractmethod
-    def download(self, book_url: str, dest_folder: str) -> None:
+    def download_images(
+        book: IBook,
+        dest_folder: str,
+        event_dispatcher: EventSystem,
+        timeout: Optional[int],
+    ) -> IBook:
         """Download the book from the given URL."""
         pass
 
@@ -42,15 +49,15 @@ class PrLibDownloadStrategy(DownloadStrategy):
     SCAN_URL = "https://content.prlib.ru/fcgi-bin/iipsrv.fcgi?FIF=/var/data/scans/public/{}/{}/{}&JTL=2,0&CVT=JPEG"
     DEZOOMIFY_EXECUTABLE = f"bin/{platform.system().lower()}/dezoomify-rs"
 
-    def _fetch_data(self, book_url: str) -> dict:
+    def fetch_book_data(book_url: str, event_dispatcher: EventSystem) -> dict:
         library_id = OnlineLibrary.PRLIB.value
         library_book_id = book_url.split("/")[-1]
 
         try:
             # logger.info("curl {}".format(book_url))
             output = system_call("curl {}".format(book_url))
-        except RuntimeError as e:
-            print("An error occurred:", e)
+        except RuntimeError as err:
+            logger.critical(err)
             return None
 
         js = output.split('.json"')[0].split("https")[-1]
@@ -66,7 +73,6 @@ class PrLibDownloadStrategy(DownloadStrategy):
             .split('"')[0]
             .replace(" ", "_")
         )
-        # print(output)
         author = ""
         if "field_book_author" in output:
             author = (
@@ -74,45 +80,68 @@ class PrLibDownloadStrategy(DownloadStrategy):
                 .split(">")[1]
                 .split("<")[0]
             )
+        event_dispatcher.emit(
+            "register_book",
+            book := IBook(
+                **{
+                    "url": book_url,
+                    "library_book_id": library_book_id,
+                    "library": library_id,
+                    "title": title,
+                    "author": author,
+                    "num_pages": len(all_images),
+                    "year": None,
+                    "state": BookState.REGISTERED.value,
+                    "_tech_dict": {
+                        "ids": ids,
+                        "all_images": all_images,
+                    },
+                }
+            ),
+        )
+        return book
 
-        return {
-            "url": book_url,
-            "library_book_id": library_book_id,
-            "library": library_id,
-            "title": title,
-            "author": author,
-            "num_pages": len(all_images),
-            "year": None,
-            "_ids": ids,
-            "_all_images": all_images,
-        }
-
-    def download(self, book_url: str, root_folder: str) -> None:
+    def download_images(
+        book: IBook,
+        root_folder: Path,
+        event_dispatcher: EventSystem,
+        timeout: int = 0,
+    ) -> IBook:
         """Logic for downloading a book from PrLib"""
-        # * Fetch the book data
-        book_tech_spec = self._fetch_data(book_url)
-
-        # * Register the book in the library before downloading
-        book_tech_spec["status"] = Status.DOWNLOADING.value
-        book_tech_spec["progress_page"] = 0
-        self.event_system.emit("register_book", book_tech_spec)
-
         # * Create the destination folder
-        book_dest_folder = Path(root_folder, book_tech_spec["title"])
+        book_dest_folder = root_folder / book.title
         book_dest_folder.mkdir(parents=True, exist_ok=True)
 
+        # * Update status
+        book.set_state(BookState.DOWNLOADING.value)
+        book.set_progress_page(-1)
+        event_dispatcher.emit("register_book", book)
+
         # * Download fetched images
-        # for i, im in enumerate(book_tech_spec["_all_images"]):
-        #     im_address = self.SCAN_URL.format(*book_tech_spec["_ids"], im)
-        #     logger.info(f"{i}/{book_tech_spec['num_pages']}  >  {im_address}")
-        #     # Download the image
-        #     system_call(
-        #         "{} -l {} {}.jpeg".format(
-        #             self.DEZOOMIFY_EXECUTABLE,
-        #             im_address,
-        #             str(book_dest_folder / str(i).zfill(3)),
-        #         )
-        #     )
+        ids = book.get_tech().ids
+        all_images = book.get_tech().all_images
+        for i, im in enumerate(all_images):
+            im_address = PrLibDownloadStrategy.SCAN_URL.format(*ids, im)
+            logger.info(f"page:{i}/{book.num_pages}  |  url: {im_address}")
+            image_path = book_dest_folder / f"{str(i).zfill(4)}.jpeg"
+            if image_path.exists():
+                image_path.unlink()  # Remove if exists
+            # Download the image
+            try:
+                system_call(
+                    f"{PrLibDownloadStrategy.DEZOOMIFY_EXECUTABLE} -l {im_address} {str(image_path)}"
+                )
+                book.set_progress_page(i)
+                event_dispatcher.emit("register_book", book)
+                if timeout:
+                    sleep(timeout)  # Pause for 1 second
+            except RuntimeError as err:
+                logger.critical(err)
+                book.set_state(BookState.TERMINATED.value)
+                event_dispatcher.emit("register_book", book)
+
+        event_dispatcher.emit("book_is_ready", book)
+        return book
 
     @staticmethod
     def can_handle_url(book_url: str) -> bool:
@@ -124,12 +153,18 @@ class SPHLDownloadStrategy(DownloadStrategy):
     This class implements the DownloadStrategy interface for SPHL.
     """
 
-    def _fetch_data(self, book_url: str) -> dict:
+    def fetch_book_data(self, book_url: str, event_dispatcher: EventSystem) -> dict:
         ...
 
-    def download(self, book_url: str, dest_folder: str) -> None:
+    def download_images(
+        self,
+        book: IBook,
+        dest_folder: str,
+        event_dispatcher: EventSystem,
+        timeout: int = 90,
+    ) -> IBook:
         # Logic for downloading a book from ELib
-        pass
+        return 0
 
     @staticmethod
     def can_handle_url(book_url: str) -> bool:
@@ -147,8 +182,8 @@ class DownloadStrategyFactory:
         ]  # Add more as you implement them
 
         # Select the appropriate strategy based on the URL
-        for strategy in strategies:
-            if strategy.can_handle_url(book_url):
-                return strategy()
+        # Using the walrus operator (:=) introduced in PEP 572 for concise assignment within expressions.
+        if any((strategy := s).can_handle_url(book_url) for s in strategies):
+            return strategy
 
         raise ValueError(f"No available strategy for the URL: {book_url}")
