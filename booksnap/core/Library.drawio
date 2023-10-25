@@ -1,38 +1,29 @@
-<mxfile host="app.diagrams.net" modified="2023-10-25T13:50:38.223Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" etag="KBm9Ris54D00mHWIvPfA" version="22.0.8" type="github">
+<mxfile host="app.diagrams.net" modified="2023-10-25T20:24:23.630Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" etag="tMEiIFKWmCGJjUADa3ZY" version="22.0.8" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
     <mxGraphModel dx="1893" dy="414" grid="1" gridSize="10" guides="1" tooltips="1" connect="0" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" background="#CCCCCC" math="0" shadow="0">
       <root>
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="P9E268Bw0gb1X7N-w08P-5" value="ministry.py" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;whiteSpace=wrap;flipV=0;direction=north;horizontal=0;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
-          <mxGeometry x="-15" y="140" width="40" height="70" as="geometry" />
+          <mxGeometry x="-130" y="120" width="40" height="70" as="geometry" />
         </mxCell>
         <mxCell id="P9E268Bw0gb1X7N-w08P-104" value="goes to lib" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;curved=1;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="P9E268Bw0gb1X7N-w08P-6" target="P9E268Bw0gb1X7N-w08P-27">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="-250" y="180" as="sourcePoint" />
-            <Array as="points">
-              <mxPoint x="-27" y="200" />
-              <mxPoint x="-27" y="240" />
-            </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="P9E268Bw0gb1X7N-w08P-105" value="wants to read a book&lt;br&gt;(url given)" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;shadow=0;curved=1;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" target="P9E268Bw0gb1X7N-w08P-28">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="-260" y="200" as="sourcePoint" />
+        <mxCell id="P9E268Bw0gb1X7N-w08P-105" value="wants to read a book&lt;br&gt;(url given)" style="edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;shadow=0;curved=1;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="P9E268Bw0gb1X7N-w08P-27" target="P9E268Bw0gb1X7N-w08P-28">
+          <mxGeometry x="-0.4417" y="-38" relative="1" as="geometry">
+            <mxPoint x="-260" y="310" as="sourcePoint" />
             <mxPoint x="140" y="460" as="targetPoint" />
-            <Array as="points">
-              <mxPoint x="-150" y="200" />
-              <mxPoint x="-150" y="310" />
-              <mxPoint x="60" y="310" />
-              <mxPoint x="60" y="457" />
-            </Array>
+            <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="P9E268Bw0gb1X7N-w08P-6" value="Actor" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
-          <mxGeometry x="-290" y="145" width="30" height="60" as="geometry" />
+        <mxCell id="P9E268Bw0gb1X7N-w08P-6" value="Reader" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="-290" y="150" width="30" height="60" as="geometry" />
         </mxCell>
         <mxCell id="P9E268Bw0gb1X7N-w08P-15" value="LibraryMinistry" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
-          <mxGeometry x="25" y="140" width="160" height="112" as="geometry">
+          <mxGeometry x="-90" y="120" width="160" height="112" as="geometry">
             <mxRectangle x="110" y="200" width="100" height="30" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
@@ -102,7 +93,7 @@
             <mxPoint x="280" y="140" as="sourcePoint" />
             <mxPoint x="290" y="330" as="targetPoint" />
             <Array as="points">
-              <mxPoint x="320" y="213" />
+              <mxPoint x="320" y="190" />
             </Array>
           </mxGeometry>
         </mxCell>
@@ -111,7 +102,7 @@
             <mxPoint x="195" y="223" as="sourcePoint" />
             <mxPoint x="440" y="250" as="targetPoint" />
             <Array as="points">
-              <mxPoint x="320" y="240" />
+              <mxPoint x="320" y="220" />
             </Array>
           </mxGeometry>
         </mxCell>
@@ -119,7 +110,7 @@
           <mxGeometry x="185" y="30" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="P9E268Bw0gb1X7N-w08P-54" value="DownloadManager" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
-          <mxGeometry x="690" y="320" width="235" height="244" as="geometry" />
+          <mxGeometry x="650" y="340" width="235" height="244" as="geometry" />
         </mxCell>
         <mxCell id="P9E268Bw0gb1X7N-w08P-55" value="+ download_dir: Path" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="P9E268Bw0gb1X7N-w08P-54">
           <mxGeometry y="26" width="235" height="26" as="geometry" />
@@ -323,6 +314,19 @@
         </mxCell>
         <mxCell id="P9E268Bw0gb1X7N-w08P-128" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#3CFF00;sketch=1;curveFitting=1;jiggle=2;shadow=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
           <mxGeometry x="380" y="740" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="P9E268Bw0gb1X7N-w08P-130" value="Condition" style="rhombus;whiteSpace=wrap;html=1;fontColor=#000000;fillColor=#ffffc0;strokeColor=#ff0000;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="585" y="650" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="P9E268Bw0gb1X7N-w08P-131" value="no" style="edgeStyle=orthogonalEdgeStyle;html=1;align=left;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#ff0000;rounded=0;" edge="1" source="P9E268Bw0gb1X7N-w08P-130" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="-1" relative="1" as="geometry">
+            <mxPoint x="765" y="670" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="P9E268Bw0gb1X7N-w08P-132" value="yes" style="edgeStyle=orthogonalEdgeStyle;html=1;align=left;verticalAlign=top;endArrow=open;endSize=8;strokeColor=#ff0000;rounded=0;" edge="1" source="P9E268Bw0gb1X7N-w08P-130" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="-1" relative="1" as="geometry">
+            <mxPoint x="625" y="750" as="targetPoint" />
+          </mxGeometry>
         </mxCell>
       </root>
     </mxGraphModel>
