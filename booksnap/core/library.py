@@ -11,7 +11,7 @@ import traceback
 from ._singleton import SingletonArgMeta
 from .book import IBook
 from .download_manager import DownloadManager
-from .events import BookEventSystem
+from .book_event import BookEventSystem
 from .utils import hash_url
 from .enums import BookState
 

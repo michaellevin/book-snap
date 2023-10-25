@@ -27,7 +27,7 @@ class DownloadStrategy(ABC):
     @abstractmethod
     def download_images(
         book: IBook,
-        dest_folder: str,
+        dest_folder: Path,
         event_dispatcher: EventSystem,
         timeout: Optional[int],
     ) -> IBook:
