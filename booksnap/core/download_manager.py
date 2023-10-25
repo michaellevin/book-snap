@@ -1,4 +1,4 @@
-from concurrent.futures import ThreadPoolExecutor, as_completed, wait
+from concurrent.futures import ThreadPoolExecutor, Future, as_completed, wait
 from typing import Callable
 from pathlib import Path
 
@@ -16,13 +16,13 @@ class DownloadManager:
         self.futures = []
 
         # Function dispatcher: maps types to appropriate class methods
-        self.download_dispatcher = {
+        self._download_dispatcher = {
             str: self._download_book_from_url,
             IBook: self._resume_download_book,
         }
         self._event_dispatcher = event_dispatcher
 
-    def _download_book_from_url(self, book_url: str):
+    def _download_book_from_url(self, book_url: str) -> IBook:
         """Private method to handle download from a URL."""
         # Logic for handling book download from URL
         download_strategy = DownloadStrategyFactory.get_strategy(book_url)
@@ -31,30 +31,30 @@ class DownloadManager:
             book, self.download_dir, self._event_dispatcher
         )
 
-    def _resume_download_book(self, book: IBook):
+    def _resume_download_book(self, book: IBook) -> IBook:
         """Private method to handle download from a book object."""
         # Logic for handling download from a book instance
         ...
 
-    def start_download(self, book_or_url: str | IBook):
+    def _start_download(self, book_or_url: str | IBook) -> None:
         """
         A function that simulates the download of content.
         """
-        download_method = self.download_dispatcher.get(type(book_or_url))
+        download_method = self._download_dispatcher.get(type(book_or_url))
         if download_method:
             return download_method(book_or_url)
         else:
             raise ValueError(f"Unsupported type: {type(book_or_url)}")
 
-    def add(self, book_or_url: str | IBook):
+    def add(self, book_or_url: str | IBook) -> Future:
         """
         Add a download task to the pool.
         """
-        future = self.executor.submit(self.start_download, book_or_url)
+        future = self.executor.submit(self._start_download, book_or_url)
         self.futures.append(future)
         return future
 
-    def wait_completion(self):
+    def wait_completion(self) -> None:
         """
         Wait for the completion of all the tasks in the pool.
         """
@@ -70,7 +70,7 @@ class DownloadManager:
         # Clear the list of futures once all have been processed.
         self.futures = []
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         """
         Clean shutdown of the ThreadPoolExecutor.
         """

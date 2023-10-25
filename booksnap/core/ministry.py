@@ -14,7 +14,7 @@ class LibraryMinistry(metaclass=SingletonMeta):
     def __init__(self):
         self._libraries = {}
 
-    def build_library(self, books_dir: str):
+    def build_library(self, books_dir: str) -> Library:
         if self._libraries.get(books_dir) is None:
             self._libraries[books_dir] = Library(books_dir)
             logger.info(
@@ -22,7 +22,7 @@ class LibraryMinistry(metaclass=SingletonMeta):
             )
         return self._libraries[books_dir]
 
-    def get_library(self, books_dir: str):
+    def get_library(self, books_dir: str) -> Library:
         library = self._libraries.get(books_dir)
         if library is None:
             raise ValueError(
@@ -30,5 +30,5 @@ class LibraryMinistry(metaclass=SingletonMeta):
             )  # or handle this some other appropriate way
         return library
 
-    def get_all_libraries(self):
+    def get_all_libraries(self) -> dict:
         return self._libraries

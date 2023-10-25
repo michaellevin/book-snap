@@ -98,7 +98,7 @@ class Library(metaclass=SingletonArgMeta):
                 # raise # Optionally, re-raise the exception
         return None
 
-    def load_metadata(self) -> None:
+    def load_metadata(self) -> dict | None:
         if Path(self._metadata_file).exists():
             with open(self._metadata_file, "r", encoding="utf-8") as file:
                 data = json.load(file)
