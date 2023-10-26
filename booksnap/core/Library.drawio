@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2023-10-25T23:38:43.723Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" etag="ObPOB-3I8CkX7zDUMicq" version="22.0.8" type="github">
-  <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
-    <mxGraphModel dx="2404" dy="706" grid="1" gridSize="10" guides="1" tooltips="1" connect="0" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" background="#CCCCCC" math="0" shadow="0">
+<mxfile host="app.diagrams.net" modified="2023-10-26T00:14:31.556Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" etag="W6fcDX611WpzOTz2uoIG" version="22.0.8" type="github">
+  <diagram id="C5RBs43oDa-KdzZeNtuy" name="core">
+    <mxGraphModel dx="3836" dy="857" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2336" pageHeight="1654" background="#CCCCCC" math="0" shadow="0">
       <root>
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
