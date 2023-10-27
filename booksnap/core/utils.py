@@ -72,12 +72,12 @@ def create_pdf(dest_folder: str, title: str) -> str:
         return
 
     # Delete the images
-    for img_path in imgs:
-        try:
-            os.remove(img_path)
-        except OSError as e:
-            print(f"Error deleting file {img_path}: {e}")
-
-    dest_folder_path.rmdir()  # Remove the empty folder
+    # for img_path in imgs:
+    #     try:
+    #         os.remove(img_path)
+    #     except OSError as e:
+    #         print(f"Error deleting file {img_path}: {e}")
+    # # Delete folder
+    # dest_folder_path.rmdir()  # Remove the empty folder
 
     return pdf_path
