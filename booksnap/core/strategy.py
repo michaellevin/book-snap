@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
 
-from pathlib import Path
-from urllib.request import urlopen
 import json
-from time import sleep
 import platform
+from pathlib import Path
+from threading import Event
+from urllib.request import urlopen
 from typing import Optional
+from time import sleep
 import logging
 
 logger = logging.getLogger(__name__)
@@ -29,6 +30,7 @@ class DownloadStrategy(ABC):
         book: IBook,
         dest_folder: Path,
         event_dispatcher: EventSystem,
+        start_page: Optional[int],
         timeout: Optional[int],
     ) -> IBook:
         """Download the book from the given URL."""
@@ -56,6 +58,7 @@ class PrLibDownloadStrategy(DownloadStrategy):
         try:
             # logger.info("curl {}".format(book_url))
             output = system_call("curl {}".format(book_url))
+            logger.info(f"Book data fetched from {book_url}")
         except RuntimeError as err:
             logger.critical(err)
             return None
@@ -106,43 +109,71 @@ class PrLibDownloadStrategy(DownloadStrategy):
         book: IBook,
         root_folder: Path,
         event_dispatcher: EventSystem,
+        start_page: int | None = 0,
         timeout: int = 0,
+        main_event: Optional[Event] = None,
     ) -> IBook:
         """Logic for downloading a book from PrLib"""
         # * Create the destination folder
         book_dest_folder = root_folder / book.title
         book_dest_folder.mkdir(parents=True, exist_ok=True)
 
-        # * Update status
-        event_dispatcher.emit(
-            "register_book", book, state=BookState.DOWNLOADING, progress_page=-1
-        )
         # * Download fetched images
-        ids = book.get_tech().ids
-        all_images = book.get_tech().all_images
-        for i, im in enumerate(all_images):
-            im_address = PrLibDownloadStrategy.SCAN_URL.format(*ids, im)
-            logger.info(f"page:{i+1}/{book.num_pages}  |  url: {im_address}")
-            image_path = book_dest_folder / f"{str(i).zfill(4)}.jpeg"
-            if image_path.exists():
-                image_path.unlink()  # Remove if exists
-            # Download the image
-            try:
-                system_call(
-                    f"{PrLibDownloadStrategy.DEZOOMIFY_EXECUTABLE} -l {im_address} {str(image_path)}"
-                )
-                book.set_progress_page(i)
-                event_dispatcher.emit("register_book", book, progress_page=i + 1)
-                if timeout:
-                    sleep(timeout)  # Pause for 1 second
-            except RuntimeError as err:
-                logger.critical(err)
-                event_dispatcher.emit("register_book", book, state=BookState.TERMINATED)
+        if start_page is not None:
+            ids = book.get_tech().ids
+            all_images = book.get_tech().all_images
+            len_all_images = len(all_images)
+            for i in range(start_page, len_all_images):
+                # Abort if main_event is set
+                if main_event is not None and main_event.is_set():
+                    logger.info("Download aborted")
+                    event_dispatcher.emit(
+                        "update_book_progress", book, state=BookState.TERMINATED
+                    )
+                    return book
 
-        event_dispatcher.emit("book_is_ready", book, state=BookState.DOWNLOAD_FINISHED)
+                # Construct the image path
+                image_path = book_dest_folder / f"{str(i).zfill(4)}.jpeg"
+                if image_path.exists():
+                    image_path.unlink()  # Remove if exists
+
+                # Download the image
+                im_address = PrLibDownloadStrategy.SCAN_URL.format(*ids, all_images[i])
+                try:
+                    system_call(
+                        f"{PrLibDownloadStrategy.DEZOOMIFY_EXECUTABLE} -l {im_address} {str(image_path)}"
+                    )
+                    event_dispatcher.emit(
+                        "update_book_progress",
+                        book,
+                        state=BookState.DOWNLOADING,
+                        progress_page=i + 1,
+                    )
+                    logger.info(
+                        f"page:{i+1}/{book.num_pages}  |  url: {im_address} downloaded succesfully"
+                    )
+                    # Pause if necessary
+                    if timeout:
+                        sleep(timeout)
+                except RuntimeError as err:
+                    logger.critical(err)
+                    event_dispatcher.emit(
+                        "register_book", book, state=BookState.TERMINATED
+                    )
+
+            event_dispatcher.emit(
+                "images_downloaded", book, state=BookState.DOWNLOAD_FINISHED
+            )
+
         # * Convert images to PDF
-        create_pdf(book_dest_folder, book.title)
-        event_dispatcher.emit("book_is_ready", book, state=BookState.PDF_READY)
+        # sleep(5)
+        try:
+            create_pdf(book_dest_folder, book.title)
+            # event_dispatcher.emit("book_is_ready", book, state=BookState.PDF_READY)
+        except RuntimeError as err:
+            logger.critical(err)
+            event_dispatcher.emit("images_downloaded", book, state=BookState.TERMINATED)
+
         return book
 
     @staticmethod
@@ -163,6 +194,7 @@ class SPHLDownloadStrategy(DownloadStrategy):
         book: IBook,
         dest_folder: str,
         event_dispatcher: EventSystem,
+        start_page: int = 0,
         timeout: int = 90,
     ) -> IBook:
         # Logic for downloading a book from ELib
