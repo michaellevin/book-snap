@@ -6,6 +6,7 @@
             "request": "launch",
             "program": "./run.py",
             "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
             "justMyCode": true
         }
     ]
