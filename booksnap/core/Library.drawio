@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2023-10-27T13:03:30.219Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" etag="sImtcHdccehZlXBifyUe" version="22.0.8" type="github">
+<mxfile host="app.diagrams.net" modified="2023-10-27T15:14:49.451Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" etag="D1ms4TFB7CPiGIZ404oA" version="22.0.8" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="core">
     <mxGraphModel dx="724" dy="390" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="500" background="#CCCCCC" math="0" shadow="0">
       <root>
@@ -70,7 +70,7 @@
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="P9E268Bw0gb1X7N-w08P-26" value="- _ask_librarian(id): IBook&lt;br&gt;" style="text;strokeColor=#82b366;fillColor=#d5e8d4;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="P9E268Bw0gb1X7N-w08P-23" vertex="1">
+        <mxCell id="P9E268Bw0gb1X7N-w08P-26" value="+ query_book(int, str): IBook" style="text;strokeColor=#82b366;fillColor=#d5e8d4;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;gradientColor=#97d077;" parent="P9E268Bw0gb1X7N-w08P-23" vertex="1">
           <mxGeometry y="190" width="270" height="26" as="geometry" />
         </mxCell>
         <mxCell id="P9E268Bw0gb1X7N-w08P-29" value="+ load_metadata(): dict" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="P9E268Bw0gb1X7N-w08P-23" vertex="1">
@@ -260,9 +260,9 @@
             <mxPoint x="362" y="801" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="P9E268Bw0gb1X7N-w08P-113" value="IBook" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;gradientColor=#97d077;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1" collapsed="1">
-          <mxGeometry x="742" y="851" width="70" height="30" as="geometry">
-            <mxRectangle x="742" y="851" width="198" height="424" as="alternateBounds" />
+        <mxCell id="P9E268Bw0gb1X7N-w08P-113" value="IBook" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;gradientColor=#97d077;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="742" y="851" width="198" height="424" as="geometry">
+            <mxRectangle x="742" y="851" width="70" height="30" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
         <mxCell id="P9E268Bw0gb1X7N-w08P-114" value="+ url: str" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="P9E268Bw0gb1X7N-w08P-113" vertex="1">
