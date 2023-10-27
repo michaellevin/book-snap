@@ -1,6 +1,7 @@
 from typing import Callable, Dict, List, Any
 
 
+# * Observer pattern
 class EventSystem:
     def __init__(self) -> None:
         self.listeners: Dict[str, List[Callable[[Any], None]]] = {}
