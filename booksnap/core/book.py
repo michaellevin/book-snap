@@ -1,6 +1,12 @@
-from dataclasses import dataclass, field, asdict, InitVar
-from typing import Optional, Dict, Any
+from __future__ import (
+    annotations,
+)  # PEP 563. This is needed for the type hinting of the classmethod 'create_instance'
+
+
+from dataclasses import dataclass, field, fields, asdict, InitVar
+from typing import Optional, Dict, Any, Type
 from types import SimpleNamespace
+from pprint import pprint
 
 from .enums import OnlineLibrary, BookState
 from .utils import hash_url
@@ -28,10 +34,29 @@ class IBook:
     def __post_init__(self, _tech_dict: Optional[Dict]):
         """Operations to perform after the initial creation of the dataclass instance."""
         self._id = hash_url(self.url)
-
         if _tech_dict is not None:
             for key, value in _tech_dict.items():
                 setattr(self._tech, key, value)
+
+    @classmethod
+    def create_instance(cls: Type[IBook], book_data: Dict[str, Any]) -> IBook:
+        """
+        Create a new IBook instance from a dictionary of book data, ensuring only valid fields are used.
+
+        :param book_data: Dictionary containing book data.
+        :return: An instance of IBook.
+        """
+        valid_fields = {field.name for field in fields(cls) if field.init}
+        # Only keep items in book_data whose keys correspond to valid_fields.
+        filtered_data = {k: v for k, v in book_data.items() if k in valid_fields}
+        # '_tech_dict' needs special handling since it's an InitVar. If present, it should be passed separately.
+        _tech_dict_data = book_data.get("_tech")
+        if _tech_dict_data is not None:
+            return cls(
+                **filtered_data, _tech_dict=_tech_dict_data
+            )  # Create an instance with _tech_dict.
+
+        return cls(**filtered_data)  # Regular instance creation.
 
     @property
     def id(self) -> int:
@@ -53,6 +78,10 @@ class IBook:
 
     def get_tech(self) -> SimpleNamespace:
         """Get the technical data of the book."""
+        # Check if it is not empty namespace
+        is_namespace_empty = not bool(self._tech.__dict__)
+        if is_namespace_empty:
+            return None
         return self._tech
 
     def to_dict(self, final: bool = False) -> dict:
@@ -85,18 +114,18 @@ class IBook:
 
     #     # Add the year if it is not None
     #     if self.year is not None:
-    #         repr_str += f" ({self.year})"
-
-    #     return repr_str
-
+    #         repr_str +=
     def pprint(self) -> None:
         """Pretty-print the book data."""
         print(f"Title: {self.title}")
         print(f"Author: {self.author}")
-        print(f"Year: {self.year if self.year is not None else 'Unknown'}")
         print(f"Number of pages: {self.num_pages}")
-        print(f"State: {BookState(self.state)}")
-        print(f"Progress page: {self.progress_page}")
         print(f"URL: {self.url}")
+        print(f"ID: {self.id}")
         print(f"Library book ID: {self.library_book_id}")
-        print(f"Library: {OnlineLibrary(self.library)}")
+        print(f"Library: {str(OnlineLibrary(self.library))}")
+        print(f"State: {str(BookState(self.state))}")
+        print(f"Progress page: {self.progress_page}")
+        if tech := self.get_tech():
+            print(f"Technical data:")
+            pprint(vars(tech))
