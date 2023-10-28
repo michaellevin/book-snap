@@ -70,7 +70,6 @@ class PrLibDownloadStrategy(DownloadStrategy):
         data = json.load(j)
         all_images = [dct["f"] for dct in data["pgs"]]
         ids = js.replace("\\", "").split("/")[-3:-1]
-        # pprint(all_images)
         title = (
             output.split('<meta itemprop="name" content="')[1]
             .split('"')[0]
@@ -86,8 +85,8 @@ class PrLibDownloadStrategy(DownloadStrategy):
         # emit a book registration event to Library
         event_dispatcher.emit(
             "register_book",
-            book := IBook(
-                **{
+            book := IBook.create_instance(
+                {
                     "url": book_url,
                     "library_book_id": library_book_id,
                     "library": library_id,

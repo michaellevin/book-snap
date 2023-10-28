@@ -32,6 +32,7 @@ class IBook:
     _id: int = field(init=False, repr=False, compare=False)
 
     def __post_init__(self, _tech_dict: Optional[Dict]):
+        print(f"POST INIT")
         """Operations to perform after the initial creation of the dataclass instance."""
         self._id = hash_url(self.url)
         if _tech_dict is not None:
@@ -50,8 +51,9 @@ class IBook:
         # Only keep items in book_data whose keys correspond to valid_fields.
         filtered_data = {k: v for k, v in book_data.items() if k in valid_fields}
         # '_tech_dict' needs special handling since it's an InitVar. If present, it should be passed separately.
-        _tech_dict_data = book_data.get("_tech")
+        _tech_dict_data = book_data.get("_tech_dict")
         if _tech_dict_data is not None:
+            print(111111111111111111)
             return cls(
                 **filtered_data, _tech_dict=_tech_dict_data
             )  # Create an instance with _tech_dict.
@@ -98,10 +100,10 @@ class IBook:
 
         # Convert the SimpleNamespace to a dictionary
         if isinstance(self._tech, SimpleNamespace):
-            book_dict["_tech"] = vars(self._tech)
+            book_dict["_tech_dict"] = vars(self._tech)
+            book_dict.pop("_tech")
 
         # Remove items where value is None
-        # (TODO): check progress_page
         return {
             k: v
             for k, v in book_dict.items()
