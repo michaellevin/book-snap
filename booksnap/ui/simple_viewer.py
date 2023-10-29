@@ -29,6 +29,7 @@ class SimpleApp(QMainWindow):
         self.book = None
         self.library_ministry = LibraryMinistry()
         self.library = self.library_ministry.build_library(".LIBRARY")
+        # Clean the metadata for testing purposes
         # self.library._clear_metadata()  # temporary
 
         self.library.on_book_data_fetched.connect(self.register_book_event)
