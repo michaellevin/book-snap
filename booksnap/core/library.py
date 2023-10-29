@@ -103,7 +103,8 @@ class Library(metaclass=SingletonArgMeta):
         book = self.query_book(book_url=book_url)
         if book is None:
             # Book does not exist, so we initiate a download.
-            return self.download(book_url)
+            future = self.download(book_url)
+            return future
         else:
             # Book exists, so we check its state.
             logger.info(
@@ -112,13 +113,15 @@ class Library(metaclass=SingletonArgMeta):
             )
             if book.state == BookState.PDF_READY.value:
                 # Book is available and ready.
-                return self.get_book_path(book)
+                book_path = self.get_book_path(book)
+                return book_path
             elif self._download_manager.is_downloading(book_url):
                 logging.warning("Book is downloading, please wait")
-                return self._download_manager.get_future(book_url)
+                return self._download_manager.get_future(book_url)  # Future object
             elif book.state == BookState.TERMINATED.value:
-                # Resume book's download, it was downloaded before. (TODO)
-                return self.download(book_url)
+                # Resume book's download, it was downloaded before.
+                future = self.download(book)
+                return future
 
         return None
 
