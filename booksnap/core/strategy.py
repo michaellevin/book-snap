@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
 
-import json
-import platform
 from pathlib import Path
 from threading import Event
-from urllib.request import urlopen
 from typing import Optional
+import requests
+import json
 from time import sleep
+import platform
 import logging
 
 logger = logging.getLogger(__name__)
@@ -55,21 +55,17 @@ class PrLibDownloadStrategy(DownloadStrategy):
         library_id = OnlineLibrary.PRLIB.value
         library_book_id = book_url.split("/")[-1]
 
+        # * Curl url to get the json data
         try:
             # logger.info("curl {}".format(book_url))
             output = system_call("curl {}".format(book_url))
             logger.info(f"Book data fetched from {book_url}")
+            # pprint(output)
         except RuntimeError as err:
             logger.critical(err)
             return None
 
-        js = output.split('.json"')[0].split("https")[-1]
-        js_cmd = f"https{js}.json".replace("\\", "")
-        j = urlopen(js_cmd)
-        # pprint(output)
-        data = json.load(j)
-        all_images = [dct["f"] for dct in data["pgs"]]
-        ids = js.replace("\\", "").split("/")[-3:-1]
+        # * Fetch title, author etc.
         title = (
             output.split('<meta itemprop="name" content="')[1]
             .split('"')[0]
@@ -82,7 +78,25 @@ class PrLibDownloadStrategy(DownloadStrategy):
                 .split(">")[1]
                 .split("<")[0]
             )
-        # emit a book registration event to Library
+
+        # * Fetch technical json data (images, ids..)
+        json_url = output.split('.json"')[0].split("https")[-1]
+        json_cmd = f"https{json_url}.json".replace("\\", "")
+        try:
+            response = requests.get(json_cmd)
+            # Check if the request was successful
+            if response.status_code == 200:
+                json_data = response.json()  # Assuming the response content is JSON
+            else:
+                logger.warning(
+                    f"Failed to retrieve content, status code: {response.status_code}"
+                )
+        except requests.exceptions.RequestException as e:
+            logger.critical(f"An error occurred: {e}")
+            return None
+        all_images = [dct["f"] for dct in json_data["pgs"]]
+        ids = json_url.replace("\\", "").split("/")[-3:-1]
+        # * Emit a book registration event to Library
         event_dispatcher.emit(
             EventType.REGISTER_BOOK,  # "register_book",
             book := IBook.create_instance(
