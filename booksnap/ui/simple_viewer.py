@@ -1,6 +1,9 @@
 import sys
 import os
 import pprint
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 from PySide6.QtWidgets import (
     QApplication,
@@ -26,19 +29,12 @@ class SimpleApp(QMainWindow):
         self.book = None
         self.library_ministry = LibraryMinistry()
         self.library = self.library_ministry.build_library(".LIBRARY")
-        self.library._clear_metadata()  # temporary
-        self.library.event_dispatcher.register_listener(
-            "register_book", self.register_book_event
-        )
-        self.library.event_dispatcher.register_listener(
-            "update_book_progress", self.update_book_progress_event
-        )
-        self.library.event_dispatcher.register_listener(
-            "images_downloaded", self.images_downloaded_event
-        )
-        self.library.event_dispatcher.register_listener(
-            "book_is_ready", self.book_is_ready_event
-        )
+        # self.library._clear_metadata()  # temporary
+
+        self.library.on_book_data_fetched.connect(self.register_book_event)
+        self.library.on_book_progress.connect(self.update_book_progress_event)
+        self.library.on_book_images_downloaded.connect(self.images_downloaded_event)
+        self.library.on_book_data_ready.connect(self.book_is_ready_event)
 
         # Set main window properties
         self.setWindowTitle("Simple Downloader")
@@ -102,27 +98,24 @@ class SimpleApp(QMainWindow):
 
     def query(self):
         # Logic to query the library
-        print(f"Querying a book: {self.urls[0]}")
+        logger.info(f"Querying a book: {self.urls[0]}")
         self.book = self.library.query_book(book_url=self.urls[0])
         if self.book:
             self.book.pprint()
         else:
-            print("Book not found!")
+            logger.warning("Book not found.")
 
     @Slot()
     def start_download(self):
         # Logic to start the download
-        print("Download started!")  # Console log for demonstration
-
-        book = self.library.get_book(self.urls[0])
-        return book
+        book_future = self.library.get_book(self.urls[0])
+        return book_future
 
     @Slot()
     def shutdown(self):
         # Logic to handle shutdown
-        print("Shutting down!")  # Console log for demonstration
+        logger.warning(" ================= Shutting down =================")
         self.library._download_manager.abort(self.urls[0])
-        self.library._download_manager.shutdown(wait=False)
 
     def update_textbox(self, book: IBook):
         f_book_data = pprint.pformat(book.to_dict())
@@ -135,12 +128,12 @@ class SimpleApp(QMainWindow):
         )
 
     def register_book_event(self, book: IBook):
-        # Ensure that UI updates happen in the Qt main thread
         self.open_btn.setText(f"Book {book.title} is fetched")
         self.update_textbox(book)
 
     def update_book_progress_event(self, book: IBook):
         self.progress_bar.setValue(100 * book.progress_page / book.num_pages)
+        self.update_textbox(book)
 
     def images_downloaded_event(self, book: IBook):
         self.progress_bar.setValue(100)
@@ -156,12 +149,16 @@ class SimpleApp(QMainWindow):
     def open_book(self):
         # Logic to open the book
         if self.book is None:
-            print("Book not found!")
+            logger.info("Book not found")
         else:
             if self.book.state == BookState.PDF_READY.value:
-                print(self.library.get_book_path(self.book))
+                logger.info(self.library.get_book_path(self.book))
             else:
-                print("not ready")
+                logger.info("Book not ready")
+
+    def closeEvent(self, event) -> None:
+        self.library.stop()
+        return super().closeEvent(event)
 
 
 def main():

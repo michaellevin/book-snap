@@ -11,7 +11,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from .enums import OnlineLibrary, BookState
+from .enums import OnlineLibrary, BookState, EventType
 from .utils import system_call, create_pdf
 from .events import EventSystem
 from .book import IBook
@@ -84,7 +84,7 @@ class PrLibDownloadStrategy(DownloadStrategy):
             )
         # emit a book registration event to Library
         event_dispatcher.emit(
-            "register_book",
+            EventType.REGISTER_BOOK,  # "register_book",
             book := IBook.create_instance(
                 {
                     "url": book_url,
@@ -127,7 +127,7 @@ class PrLibDownloadStrategy(DownloadStrategy):
                 if main_event is not None and main_event.is_set():
                     logger.info("Download aborted")
                     event_dispatcher.emit(
-                        "update_book_progress", book, state=BookState.TERMINATED
+                        EventType.UPDATE_BOOK_PROGRESS, book, state=BookState.TERMINATED
                     )
                     return book
 
@@ -143,7 +143,7 @@ class PrLibDownloadStrategy(DownloadStrategy):
                         f"{PrLibDownloadStrategy.DEZOOMIFY_EXECUTABLE} -l {im_address} {str(image_path)}"
                     )
                     event_dispatcher.emit(
-                        "update_book_progress",
+                        EventType.UPDATE_BOOK_PROGRESS,  # "update_book_progress",
                         book,
                         state=BookState.DOWNLOADING,
                         progress_page=i + 1,
@@ -157,21 +157,25 @@ class PrLibDownloadStrategy(DownloadStrategy):
                 except RuntimeError as err:
                     logger.critical(err)
                     event_dispatcher.emit(
-                        "register_book", book, state=BookState.TERMINATED
+                        EventType.UPDATE_BOOK_PROGRESS, book, state=BookState.TERMINATED
                     )
 
             event_dispatcher.emit(
-                "images_downloaded", book, state=BookState.DOWNLOAD_FINISHED
+                EventType.IMAGES_DOWNLOADED, book, state=BookState.DOWNLOAD_FINISHED
             )
 
         # * Convert images to PDF
         # sleep(5)
         try:
             create_pdf(book_dest_folder, book.title)
-            # event_dispatcher.emit("book_is_ready", book, state=BookState.PDF_READY)
+            event_dispatcher.emit(
+                EventType.BOOK_IS_READY, book, state=BookState.PDF_READY
+            )
         except RuntimeError as err:
             logger.critical(err)
-            event_dispatcher.emit("images_downloaded", book, state=BookState.TERMINATED)
+            event_dispatcher.emit(
+                EventType.IMAGES_DOWNLOADED, book, state=BookState.TERMINATED
+            )
 
         return book
 

@@ -13,3 +13,10 @@ class BookState(Enum):
     TERMINATED = auto()
     DOWNLOAD_FINISHED = auto()
     PDF_READY = auto()
+
+
+class EventType(Enum):
+    REGISTER_BOOK = auto()
+    UPDATE_BOOK_PROGRESS = auto()
+    IMAGES_DOWNLOADED = auto()
+    BOOK_IS_READY = auto()

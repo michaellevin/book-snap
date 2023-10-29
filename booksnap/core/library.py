@@ -2,18 +2,19 @@ import os
 import json
 import threading
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Callable
 from functools import partial
 import tempfile
 import logging
 import traceback
+from concurrent.futures import Future
 
 from ._singleton import SingletonArgMeta
 from .book import IBook
 from .download_manager import DownloadManager
 from .book_event import BookEventSystem
 from .utils import hash_url
-from .enums import BookState
+from .enums import BookState, EventType
 
 logging.basicConfig(
     level=logging.INFO,
@@ -39,24 +40,24 @@ class Library(metaclass=SingletonArgMeta):
 
         self._books = {}
 
-        # * Event dispatcher
+        # * Event dispatcher & Signals
         self.event_dispatcher = BookEventSystem()
-        # [0] Fetch book data event
-        self.event_dispatcher.register_listener(
-            "register_book", partial(self.store_book, final=False)
+        self.on_book_data_fetched = self.event_dispatcher.register_signal(
+            EventType.REGISTER_BOOK
         )
-        # [1] Update book data on downloading images event
-        self.event_dispatcher.register_listener(
-            "update_book_progress", partial(self.store_book, final=False)
+        self.on_book_data_fetched.connect(partial(self.store_book, final=False))
+        self.on_book_data_ready = self.event_dispatcher.register_signal(
+            EventType.BOOK_IS_READY
         )
-        # [2] Update book data on book images are all downloaded event
-        self.event_dispatcher.register_listener(
-            "images_downloaded", partial(self.store_book, final=True)
+        self.on_book_data_ready.connect(partial(self.store_book, final=True))
+        self.on_book_progress = self.event_dispatcher.register_signal(
+            EventType.UPDATE_BOOK_PROGRESS
         )
-        # [3] Update book data on book PDF is ready event
-        self.event_dispatcher.register_listener(
-            "book_is_ready", partial(self.store_book, final=True)
+        self.on_book_progress.connect(partial(self.store_book, final=False))
+        self.on_book_images_downloaded = self.event_dispatcher.register_signal(
+            EventType.IMAGES_DOWNLOADED
         )
+        self.on_book_images_downloaded.connect(partial(self.store_book, final=True))
 
         self._download_manager = DownloadManager(self.root, self.event_dispatcher)
 
@@ -88,7 +89,7 @@ class Library(metaclass=SingletonArgMeta):
 
         return IBook.create_instance(book_data)
 
-    def get_book(self, book_url: str) -> IBook | None:
+    def get_book(self, book_url: str) -> Path | Future:
         """Get a book by its URL.
 
         If the book is already downloaded, return the book.
@@ -100,19 +101,9 @@ class Library(metaclass=SingletonArgMeta):
             IBook if downloaded, None otherwise (with download initiated or in progress).
         """
         book = self.query_book(book_url=book_url)
-
         if book is None:
             # Book does not exist, so we initiate a download.
-            future = self._download_manager.add(book_url)
-            # try:
-            #     # Wait for the download task to complete and return the book.
-            #     book = future.result()
-            #     book.pprint()
-            #     return self.get_book_path(book)
-            # except Exception as e:
-            #     logging.critical("An error occurred during download:")
-            #     traceback.print_exc()
-            #     # raise # Optionally, re-raise the exception
+            return self.download(book_url)
         else:
             # Book exists, so we check its state.
             logger.info(
@@ -124,23 +115,18 @@ class Library(metaclass=SingletonArgMeta):
                 return self.get_book_path(book)
             elif self._download_manager.is_downloading(book_url):
                 logging.warning("Book is downloading, please wait")
-                future = self._download_manager.get_future(book_url)
-                # book = future.result()
-                # return self.get_book_path(book)
+                return self._download_manager.get_future(book_url)
             elif book.state == BookState.TERMINATED.value:
                 # Resume book's download, it was downloaded before. (TODO)
-                future = self._download_manager.add(book_url)
-                # try:
-                #     # Wait for the download task to complete and return the book.
-                #     book = future.result()
-                #     book.pprint()
-                #     return self.get_book_path(book)
-                # except Exception as e:
-                #     logging.critical("An error occurred during download:")
-                #     traceback.print_exc()
-                #     # raise # Optionally, re-raise the exception
+                return self.download(book_url)
 
         return None
+
+    def download(self, book_url: str) -> Future:
+        """Download a book by its URL.
+        If the book is not in the database, start downloading.
+        If the book's downaload was termintaed, resume the download."""
+        return self._download_manager.add(book_url)
 
     def load_metadata(self) -> dict | None:
         if Path(self._metadata_file).exists():
@@ -177,6 +163,13 @@ class Library(metaclass=SingletonArgMeta):
         raise ValueError("Book is not ready yet")
 
     def _clear_metadata(self):
+        """Clears metadata.
+        Avoid using it. For testing only.
+        """
         with self._metadata_lock:  # Use the lock while writing to the file
             with open(self._metadata_file, "w", encoding="utf-8") as file:
                 json.dump({}, file, ensure_ascii=False)
+
+    def stop(self, wait: bool = True) -> None:
+        """Shutdown the library event dispatcher."""
+        self._download_manager.shutdown(wait=wait)

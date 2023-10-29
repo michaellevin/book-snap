@@ -111,18 +111,15 @@ class DownloadManager:
         self.futures.append(future)
         url = book_or_url.url if isinstance(book_or_url, IBook) else book_or_url
         self.active_downloads[url] = future
-        future.add_done_callback(self.on_download_finished)
+        # future.add_done_callback(self.on_download_finished)
         return future
 
-    def on_download_finished(self, future: Future) -> None:
-        try:
-            book = future.result()
-            self._event_dispatcher.emit(
-                "book_is_ready", book, state=BookState.PDF_READY
-            )
-        except Exception as e:
-            logger.critical("An error occurred during download:")
-            traceback.print_exc()
+    # def on_download_finished(self, future: Future) -> None:
+    #     try:
+    #         book = future.result()
+    #     except Exception as e:
+    #         logger.critical("An error occurred during download:")
+    #         traceback.print_exc()
 
     def get_future(self, book_url: str) -> Future:
         """
