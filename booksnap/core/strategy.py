@@ -143,7 +143,7 @@ class PrLibDownloadStrategy(DownloadStrategy):
                         f"{PrLibDownloadStrategy.DEZOOMIFY_EXECUTABLE} -l {im_address} {str(image_path)}"
                     )
                     event_dispatcher.emit(
-                        EventType.UPDATE_BOOK_PROGRESS,  # "update_book_progress",
+                        EventType.UPDATE_BOOK_PROGRESS,
                         book,
                         state=BookState.DOWNLOADING,
                         progress_page=i + 1,

@@ -10,7 +10,6 @@ logger = getLogger(__name__)
 from .book import IBook
 from .strategy import DownloadStrategyFactory
 from .events import EventSystem
-from .enums import BookState
 
 
 # PEP 604 typing: Path | str
@@ -33,7 +32,7 @@ class DownloadManager:
 
         # Function dispatcher: maps types to appropriate class methods
         self._download_dispatcher = {
-            str: self._download_book_from_url,
+            str: self._initiate_download_book,
             IBook: self._resume_download_book,
         }
 
@@ -69,39 +68,6 @@ class DownloadManager:
             )
         return path
 
-    def _download_book_from_url(self, book_url: str) -> IBook:
-        """Private method to handle download from a URL."""
-        # Logic for handling book download from URL
-        download_strategy = DownloadStrategyFactory.get_strategy(book_url)
-        book = download_strategy.fetch_book_data(book_url, self._event_dispatcher)
-        return download_strategy.download_images(
-            book=book,
-            root_folder=self.download_dir,
-            event_dispatcher=self._event_dispatcher,
-            main_event=self.main_event,
-        )
-
-    def _resume_download_book(self, book: IBook) -> IBook:
-        """Private method to handle download from a book object."""
-        # Logic for handling download from a book instance
-        download_strategy = DownloadStrategyFactory.get_strategy(book.url)
-        return download_strategy.download_images(
-            book=book,
-            root_folder=self.download_dir,
-            event_dispatcher=self._event_dispatcher,
-            start_page=book.progress_page,
-        )
-
-    def _start_download(self, book_or_url: str | IBook) -> None:
-        """
-        A function that simulates the download of content.
-        """
-        download_method = self._download_dispatcher.get(type(book_or_url))
-        if download_method:
-            return download_method(book_or_url)
-        else:
-            raise ValueError(f"Unsupported type: {type(book_or_url)}")
-
     def add(self, book_or_url: str | IBook) -> Future:
         """
         Add a download task to the pool.
@@ -113,6 +79,52 @@ class DownloadManager:
         self.active_downloads[url] = future
         # future.add_done_callback(self.on_download_finished)
         return future
+
+    def _start_download(self, book_or_url: str | IBook) -> None:
+        """
+        Choose a download method based on book url.
+        It can be either
+            initiate downloading
+            (if book is not registered yet, no registry in database)
+        or
+            resume downloading
+            (if there is already the book registry).
+        """
+
+        download_method = self._download_dispatcher.get(type(book_or_url))
+        if download_method:
+            return download_method(book_or_url)
+        else:
+            raise ValueError(f"Unsupported type: {type(book_or_url)}")
+
+    def _initiate_download_book(self, book_url: str) -> IBook:
+        """Initial download from a URL.
+        - Fetch data from URL
+        - Download images (and create PDF from them) from fetched data
+        """
+        # Logic for handling book download from URL
+        download_strategy = DownloadStrategyFactory.get_strategy(book_url)
+        book = download_strategy.fetch_book_data(book_url, self._event_dispatcher)
+        return download_strategy.download_images(
+            book=book,
+            root_folder=self.download_dir,
+            event_dispatcher=self._event_dispatcher,
+            main_event=self.main_event,
+        )
+
+    def _resume_download_book(self, book: IBook) -> IBook:
+        """Resume downloading already registered book object.
+
+        - Download images (and create PDF from them) from fetched data (taken from database)
+        """
+        # Logic for handling download from a book instance
+        download_strategy = DownloadStrategyFactory.get_strategy(book.url)
+        return download_strategy.download_images(
+            book=book,
+            root_folder=self.download_dir,
+            event_dispatcher=self._event_dispatcher,
+            start_page=book.progress_page,
+        )
 
     # def on_download_finished(self, future: Future) -> None:
     #     try:
@@ -158,7 +170,6 @@ class DownloadManager:
         Clean shutdown of the ThreadPoolExecutor.
         """
         self.executor.shutdown(wait=wait)
-        # event_dispatcher.emit("book_is_ready", book, state=BookState.TERMINATED)
 
     def abort(self, book_url: str) -> None:
         """
