@@ -261,7 +261,8 @@ class IBook:
         print(f"Library book ID: {self.library_book_id}")
         print(f"Library: {str(OnlineLibrary(self.library))}")
         print(f"State: {str(BookState(self.state))}")
-        print(f"Progress page: {self.progress_page}")
+        if self.progress_page is not None:
+            print(f"Progress page: {self.progress_page}")
         if tech := self.get_tech():
             print(f"Technical data:")
             pprint(vars(tech))
