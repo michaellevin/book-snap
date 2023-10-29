@@ -103,6 +103,7 @@ class DownloadManager:
         - Download images (and create PDF from them) from fetched data
         """
         # Logic for handling book download from URL
+        logger.info(f" ========= Starting download of {book_url} ==========")
         download_strategy = DownloadStrategyFactory.get_strategy(book_url)
         book = download_strategy.fetch_book_data(book_url, self._event_dispatcher)
         return download_strategy.download_images(
@@ -118,6 +119,7 @@ class DownloadManager:
         - Download images (and create PDF from them) from fetched data (taken from database)
         """
         # Logic for handling download from a book instance
+        logger.info(f" ========= Resuming download of {book.title} ==========")
         download_strategy = DownloadStrategyFactory.get_strategy(book.url)
         return download_strategy.download_images(
             book=book,
