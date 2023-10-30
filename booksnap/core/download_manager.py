@@ -2,19 +2,20 @@ from threading import Event
 from concurrent.futures import ThreadPoolExecutor, Future, as_completed, wait
 from typing import Callable
 from pathlib import Path
-import traceback
+
+# import traceback
 from logging import getLogger
 
 logger = getLogger(__name__)
 
 from .book import IBook
-from .strategy import DownloadStrategyFactory
-from .events import EventSystem
+from .strategies import DownloadStrategyFactory
+from .events import BookEventSystem
 
 
 # PEP 604 typing: Path | str
 class DownloadManager:
-    def __init__(self, download_dir: Path | str, event_dispatcher: EventSystem):
+    def __init__(self, download_dir: Path | str, event_dispatcher: BookEventSystem):
         # A directory where the downloaded books will be stored
         self.download_dir = self._prepare_download_dir(download_dir)
 

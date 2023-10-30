@@ -10,6 +10,7 @@
 ## Secondary
 - [ ] update README.md (make it more readable)
 - [ ] update Library.drawio
+- [ ] Remove image files after creating PDF
 
 ## On hold
 - [ ] Make User Interface (Flutter?)

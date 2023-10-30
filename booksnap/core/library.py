@@ -12,7 +12,7 @@ from concurrent.futures import Future
 from ._singleton import SingletonArgMeta
 from .book import IBook
 from .download_manager import DownloadManager
-from .book_event import BookEventSystem
+from .events.book_event import BookEventSystem
 from .utils import hash_url
 from .enums import BookState, EventType
 
@@ -118,7 +118,8 @@ class Library(metaclass=SingletonArgMeta):
             elif self._download_manager.is_downloading(book_url):
                 logging.warning("Book is downloading, please wait")
                 return self._download_manager.get_future(book_url)  # Future object
-            elif book.state == BookState.TERMINATED.value:
+            # elif book.state == BookState.TERMINATED.value:
+            else:
                 # Resume book's download, it was downloaded before.
                 future = self.download(book)
                 return future
