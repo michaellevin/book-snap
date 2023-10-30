@@ -117,7 +117,6 @@ class SphlStrategy(DownloadStrategy):
                 im_address = SphlStrategy.SCAN_URL.format(im)
                 try:
                     # im_cmd = f'curl {im_address} -o "{str(image_path)}"'
-                    # logging.info(im_cmd)
                     # system_call(im_cmd)
                     DownloadStrategy.download_image(im_address, image_path)
                     event_dispatcher.emit(
@@ -141,17 +140,7 @@ class SphlStrategy(DownloadStrategy):
             )
 
         # * Convert images to PDF
-        # sleep(5)
-        try:
-            DownloadStrategy.create_pdf(book_dest_folder, book.title)
-            event_dispatcher.emit(
-                EventType.BOOK_IS_READY, book, state=BookState.PDF_READY
-            )
-        except RuntimeError as err:
-            logger.critical(err)
-            event_dispatcher.emit(
-                EventType.IMAGES_DOWNLOADED, book, state=BookState.TERMINATED
-            )
+        DownloadStrategy.create_pdf(book_dest_folder, book, event_dispatcher)
 
         return book
 

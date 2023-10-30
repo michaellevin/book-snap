@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 from ..events import EventSystem
 from ..book import IBook
+from ..enums import BookState, EventType
 
 
 class DownloadStrategy(ABC):
@@ -74,7 +75,7 @@ class DownloadStrategy(ABC):
             raise RuntimeError(f"Image download failed: {str(e)}") from e
 
     @staticmethod
-    def create_pdf(dest_folder: str, title: str) -> str:
+    def _create_pdf(dest_folder: str, title: str) -> str:
         """Converts all jpeg images in the specified folder to a single PDF and deletes the images.
 
         :param dest_folder: Folder containing jpeg images.
@@ -94,3 +95,15 @@ class DownloadStrategy(ABC):
         except Exception as e:
             print(f"An error occurred while creating the PDF: {e}")
             return None
+
+    def create_pdf(book_dest_folder, book, event_dispatcher):
+        try:
+            DownloadStrategy._create_pdf(book_dest_folder, book.title)
+            event_dispatcher.emit(
+                EventType.BOOK_IS_READY, book, state=BookState.PDF_READY
+            )
+        except RuntimeError as err:
+            logger.critical(err)
+            event_dispatcher.emit(
+                EventType.IMAGES_DOWNLOADED, book, state=BookState.TERMINATED
+            )

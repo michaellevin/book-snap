@@ -153,16 +153,7 @@ class PrLibStrategy(DownloadStrategy):
 
         # * Convert images to PDF
         # sleep(5)
-        try:
-            DownloadStrategy.create_pdf(book_dest_folder, book.title)
-            event_dispatcher.emit(
-                EventType.BOOK_IS_READY, book, state=BookState.PDF_READY
-            )
-        except RuntimeError as err:
-            logger.critical(err)
-            event_dispatcher.emit(
-                EventType.IMAGES_DOWNLOADED, book, state=BookState.TERMINATED
-            )
+        DownloadStrategy.create_pdf(book_dest_folder, book, event_dispatcher)
 
         return book
 
