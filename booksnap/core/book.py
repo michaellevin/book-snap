@@ -156,7 +156,7 @@ class IBook:
     title: str
     author: str
     num_pages: int
-    year: Optional[int] = None  # This sets a default value for 'year'
+    year: Optional[str] = None  # This sets a default value for 'year'
     state: Optional[BookState] = None
     _progress_page: Optional[int] = None
 
