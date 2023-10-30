@@ -1,6 +1,5 @@
-import os
-from subprocess import check_output, CalledProcessError, STDOUT
 import img2pdf
+from subprocess import check_output, CalledProcessError, STDOUT
 import glob
 from pathlib import Path
 import hashlib
