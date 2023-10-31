@@ -3,10 +3,10 @@ import booksnap
 
 library_ministry = booksnap.LibraryMinistry()
 library = library_ministry.build_library(".LIBRARY")
-url_book_6pages = "https://www.prlib.ru/item/331483"
-url_book_24pages = "http://elib.shpl.ru/ru/nodes/13552"
-url_book_1page = "http://elib.shpl.ru/ru/nodes/12430"
-future_book = library.get_book(url_book_24pages)
+prlib_test_6p = "https://www.prlib.ru/item/331483"
+sphl_test_24p = "http://elib.shpl.ru/ru/nodes/13552"
+sphl_test_1p = "http://elib.shpl.ru/ru/nodes/12430"
+future_book = library.get_book(sphl_test_24p)
 future_book.result()
 
 # import sys
