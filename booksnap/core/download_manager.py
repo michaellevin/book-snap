@@ -126,7 +126,7 @@ class DownloadManager:
             book=book,
             root_folder=self.download_dir,
             event_dispatcher=self._event_dispatcher,
-            start_page=book.progress_page,
+            start_page=book.progress_page if book.progress_page is not None else 0,
         )
 
     # def on_download_finished(self, future: Future) -> None:
