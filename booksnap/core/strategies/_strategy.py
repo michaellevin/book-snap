@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
 
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Callable, List, Union
 import requests
 import img2pdf
 import glob
+from threading import Event
+from time import sleep
 import logging
 
 logger = logging.getLogger(__name__)
@@ -21,17 +23,17 @@ class DownloadStrategy(ABC):
         """Get the data of the book from the given URL."""
         pass
 
-    @staticmethod
-    @abstractmethod
-    def download_images(
-        book: IBook,
-        dest_folder: Path,
-        event_dispatcher: EventSystem,
-        start_page: Optional[int],
-        timeout: Optional[int],
-    ) -> IBook:
-        """Download the book from the given URL."""
-        pass
+    # @staticmethod
+    # @abstractmethod
+    # def download_images(
+    #     book: IBook,
+    #     dest_folder: Path,
+    #     event_dispatcher: EventSystem,
+    #     start_page: Optional[int],
+    #     timeout: Optional[int],
+    # ) -> IBook:
+    #     """Download the book from the given URL."""
+    #     pass
 
     @staticmethod
     @abstractmethod
@@ -96,6 +98,7 @@ class DownloadStrategy(ABC):
             print(f"An error occurred while creating the PDF: {e}")
             return None
 
+    @staticmethod
     def create_pdf(book_dest_folder, book, event_dispatcher):
         try:
             DownloadStrategy._create_pdf(book_dest_folder, book.title)
@@ -107,3 +110,68 @@ class DownloadStrategy(ABC):
             event_dispatcher.emit(
                 EventType.IMAGES_DOWNLOADED, book, state=BookState.TERMINATED
             )
+
+    @staticmethod
+    def download_images(
+        book: IBook,
+        root_folder: Union[Path, str],
+        event_dispatcher: EventSystem,
+        start_page: int = 0,
+        timeout: int = 0,
+        main_event: Optional[Event] = None,
+        get_ids_func: Callable = None,
+        construct_address_func: Callable = None,
+        download_func: Callable = None,
+    ) -> IBook:
+        # Common setup
+        book_dest_folder = root_folder / book.title
+        book_dest_folder.mkdir(parents=True, exist_ok=True)
+
+        ids = get_ids_func(book)
+        len_ids = len(ids)
+
+        # Common loop
+        for i in range(start_page, len_ids):
+            # Abort if main_event is set
+            if main_event is not None and main_event.is_set():
+                logger.info("Download aborted")
+                event_dispatcher.emit(
+                    EventType.UPDATE_BOOK_PROGRESS, book, state=BookState.TERMINATED
+                )
+                return book
+
+            # Pause
+            if timeout:
+                sleep(timeout)
+
+            # Construct the image path
+            image_path = book_dest_folder / f"{str(i).zfill(4)}.jpeg"
+            if image_path.exists():
+                image_path.unlink()  # Remove if exists
+
+            # Download the image
+            im_address = construct_address_func(i, ids)
+            try:
+                download_func(im_address, image_path)
+                event_dispatcher.emit(
+                    EventType.UPDATE_BOOK_PROGRESS,
+                    book,
+                    state=BookState.DOWNLOADING,
+                    progress_page=i + 1,
+                )
+                logger.info(
+                    f"page:{i+1}/{book.num_pages}  |  url: {im_address} downloaded successfully"
+                )
+            except RuntimeError as err:
+                logger.critical(err)
+                event_dispatcher.emit(
+                    EventType.UPDATE_BOOK_PROGRESS, book, state=BookState.TERMINATED
+                )
+
+        event_dispatcher.emit(
+            EventType.IMAGES_DOWNLOADED, book, state=BookState.DOWNLOAD_FINISHED
+        )
+
+        # Convert images to PDF
+        DownloadStrategy.create_pdf(book_dest_folder, book, event_dispatcher)
+        return book

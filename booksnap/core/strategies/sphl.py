@@ -81,68 +81,24 @@ class SphlStrategy(DownloadStrategy):
 
     @override
     def download_images(
-        book: IBook,
-        root_folder: str,
-        event_dispatcher: BookEventSystem,
-        start_page: int = 0,
-        timeout: int = 90,
-        main_event: Optional[Event] = None,
-    ) -> IBook:
-        # Logic for downloading a book from ELib
-        book_dest_folder = root_folder / book.title
-        book_dest_folder.mkdir(parents=True, exist_ok=True)
-
-        if start_page is not None:
-            image_ids = book.get_tech().image_ids
-            len_ids = len(image_ids)
-            for i in range(start_page, len_ids):
-                # Abort if main_event is set
-                if main_event is not None and main_event.is_set():
-                    logger.info("Download aborted")
-                    event_dispatcher.emit(
-                        EventType.UPDATE_BOOK_PROGRESS, book, state=BookState.TERMINATED
-                    )
-                    return book
-
-                # Pause
-                sleep(timeout)
-
-                # Construct the image path
-                image_path = book_dest_folder / f"{str(i).zfill(4)}.jpeg"
-                if image_path.exists():
-                    image_path.unlink()  # Remove if exists
-
-                # Download the image
-                im = image_ids[i]
-                im_address = SphlStrategy.SCAN_URL.format(im)
-                try:
-                    # im_cmd = f'curl {im_address} -o "{str(image_path)}"'
-                    # system_call(im_cmd)
-                    DownloadStrategy.download_image(im_address, image_path)
-                    event_dispatcher.emit(
-                        EventType.UPDATE_BOOK_PROGRESS,
-                        book,
-                        state=BookState.DOWNLOADING,
-                        progress_page=i + 1,
-                    )
-                    logger.info(
-                        f"page:{i+1}/{book.num_pages}  |  url: {im_address} downloaded succesfully"
-                    )
-
-                except RuntimeError as err:
-                    logger.critical(err)
-                    event_dispatcher.emit(
-                        EventType.UPDATE_BOOK_PROGRESS, book, state=BookState.TERMINATED
-                    )
-
-            event_dispatcher.emit(
-                EventType.IMAGES_DOWNLOADED, book, state=BookState.DOWNLOAD_FINISHED
-            )
-
-        # * Convert images to PDF
-        DownloadStrategy.create_pdf(book_dest_folder, book, event_dispatcher)
-
-        return book
+        book,
+        root_folder,
+        event_dispatcher,
+        start_page=0,
+        timeout=90,
+        main_event=None,
+    ):
+        return DownloadStrategy.download_images(
+            book,
+            root_folder,
+            event_dispatcher,
+            start_page,
+            timeout,
+            main_event,
+            get_ids_func=lambda book: book.get_tech().image_ids,
+            construct_address_func=lambda i, ids: SphlStrategy.SCAN_URL.format(ids[i]),
+            download_func=DownloadStrategy.download_image,
+        )
 
     @override
     def can_handle_url(book_url: str) -> bool:
