@@ -18,7 +18,7 @@ from ..enums import OnlineLibrary, EventType
 # from ..utils import system_call
 
 
-class SphlStrategy(DownloadStrategy):
+class ShplStrategy(DownloadStrategy):
     """
     This class implements the DownloadStrategy interface for SPHL.
     """
@@ -50,11 +50,11 @@ class SphlStrategy(DownloadStrategy):
             return None
 
         # Parse it
-        title = SphlStrategy.parse_html_for_key(html_doc, key="Заглавие")
+        title = ShplStrategy.parse_html_for_key(html_doc, key="Заглавие")
         if title is None:
             title = library_book_id
-        author = SphlStrategy.parse_html_for_key(html_doc, key="Автор")
-        year = SphlStrategy.parse_html_for_key(html_doc, "Год издания")
+        author = ShplStrategy.parse_html_for_key(html_doc, key="Автор")
+        year = ShplStrategy.parse_html_for_key(html_doc, "Год издания")
         # print(title, author, year)
         ids = str(html_doc).split('links_z0":{')[1].split("}")[0]
         ids = eval("{" + ids + "}")
@@ -96,7 +96,7 @@ class SphlStrategy(DownloadStrategy):
             timeout,
             main_event,
             get_ids_func=lambda book: book.get_tech().image_ids,
-            construct_address_func=lambda i, ids: SphlStrategy.SCAN_URL.format(ids[i]),
+            construct_address_func=lambda i, ids: ShplStrategy.SCAN_URL.format(ids[i]),
             download_func=DownloadStrategy.download_image,
         )
 

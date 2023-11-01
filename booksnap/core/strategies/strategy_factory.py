@@ -1,6 +1,6 @@
 from ._strategy import DownloadStrategy
 from .prlib import PrLibStrategy
-from .sphl import SphlStrategy
+from .shpl import ShplStrategy
 
 
 class DownloadStrategyFactory:
@@ -10,7 +10,7 @@ class DownloadStrategyFactory:
         # List all possible strategies here
         strategies = [
             PrLibStrategy,
-            SphlStrategy,
+            ShplStrategy,
         ]  # Add more as you implement them
 
         # Select the appropriate strategy based on the URL
