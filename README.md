@@ -80,13 +80,11 @@ When downloading from the **President's Library**, there's no need for any delay
 ## Contributing:
 Downloading images from the **President's Library** is facilitated by the tool [**dezoomify-rs**](https://github.com/lovasoa/dezoomify-rs). This versatile tool is designed to download zoomable images from platforms such as Google Arts & Culture, Zoomify, IIIF, and more. Many thanks to the authors for developing this invaluable tool.
 
+## Under the Hood
+UML diagrams can be found in the `docs/uml` folder.
 
 ## TODO
 - Develop a comprehensive interface using Flutter.
 
-## Under the Hood
-UML diagrams can be found in the `docs` folder.
-
-![Library Description](docs/uml/Library.drawio)
 
 
