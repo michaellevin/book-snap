@@ -79,7 +79,6 @@ class ShplStrategy(DownloadStrategy):
         )
         return book
 
-    @override
     def download_images(
         book,
         root_folder,
