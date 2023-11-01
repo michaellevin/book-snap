@@ -147,6 +147,7 @@ class Library(metaclass=SingletonArgMeta):
                 json.dump(metadata, file, ensure_ascii=False)
 
     def resume_all(self) -> List[int]:
+        # TODO
         ...
 
     def get_books(self) -> List[dict]:
