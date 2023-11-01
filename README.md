@@ -84,7 +84,5 @@ Downloading images from the **President's Library** is facilitated by the tool [
 UML diagrams can be found in the `docs/uml` folder.
 
 ## TODO
+- Create package
 - Develop a comprehensive interface using Flutter.
-
-
-
